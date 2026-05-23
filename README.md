@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CohnReznick Advisory Analyst
 
-## Getting Started
+AI-powered transaction diligence tool — upload a 36-month trial balance and supporting workpapers to get instant anomaly detection, driver analysis, follow-up questions, and an issue tracker.
 
-First, run the development server:
+## What it does
+
+An analyst uploads an Excel trial balance and Word workpapers. The AI agent processes the files, detects unusual movements across all accounts, explains the root causes, surfaces follow-up questions for management, and builds a prioritised issue tracker — all in under two minutes. Results are saved per engagement and downloadable as a formatted Excel workbook.
+
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local   # fill in credentials
+npm install
+node node_modules/next/dist/bin/next dev -p 3002
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3002
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Demo without credentials:** go to TB Ingestion and click **Load Sample Data**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment variables
 
-## Learn More
+| Variable | Required | Where to get it |
+|---|---|---|
+| `LYZR_API_KEY` | Yes | Lyzr Studio → API Keys |
+| `LYZR_AGENT_ID` | Yes | Lyzr Studio → Agents → CohnReznick Advisory Analyst |
+| `LYZR_USER_ID` | Yes | Your Lyzr account email |
+| `MONGODB_URI` | Yes | MongoDB Atlas or DocumentDB connection string |
+| `MONGODB_DB_NAME` | No | Database name (default: `cohn_reznick`) |
 
-To learn more about Next.js, take a look at the following resources:
+## Pages
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Route | Description |
+|---|---|
+| `/` | Dashboard — insights, active engagements, quick actions |
+| `/workflows/tb-ingestion` | Upload trial balance + workpapers, run analysis |
+| `/workflows/anomaly-detection` | Anomaly findings with approve/dismiss CTAs |
+| `/workflows/driver-analysis` | Root cause cards with cross-referenced accounts |
+| `/workflows/follow-up-questions` | Prioritised questions for management |
+| `/workflows/issue-tracker` | Collapsible issue table with status tracking |
+| `/workflows/report-drafting` | 5-sheet Excel export |
+| `/workflows/customers` | Saved engagement history from MongoDB |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy to Vercel
 
-## Deploy on Vercel
+1. Push to GitHub
+2. [vercel.com/new](https://vercel.com/new) → import repo → framework auto-detected
+3. Add env vars: Project → Settings → Environment Variables
+4. Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Built with
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js · Lyzr Agent API · Redux Toolkit · MongoDB · Tailwind CSS · shadcn/ui · framer-motion
