@@ -175,9 +175,12 @@ export async function POST(req: NextRequest) {
 
           for (const line of lines) {
             if (!line.startsWith("data: ")) continue;
-            const raw = line.slice(6).trim();
-            if (!raw || raw === "[DONE]") {
-              if (raw === "[DONE]") doneStreaming = true;
+            // Strip trailing \r only — preserve leading spaces which are part of
+            // JSON string values (e.g. " Dec" in "Jan-2024 to Dec-2025").
+            const raw = line.slice(6).replace(/\r$/, "");
+            const trimmed = raw.trim();
+            if (!trimmed || trimmed === "[DONE]") {
+              if (trimmed === "[DONE]") doneStreaming = true;
               continue;
             }
             // Always append raw token — do not JSON.parse individual tokens.
@@ -202,11 +205,21 @@ export async function POST(req: NextRequest) {
         }
 
         let result: unknown;
+        const candidate = jsonMatch[0];
         try {
-          result = JSON.parse(jsonMatch[0]);
-        } catch (e) {
-          send("error", { error: `JSON parse failed: ${(e as Error).message}. Preview: ${jsonMatch[0].slice(0, 300)}` });
-          return;
+          result = JSON.parse(candidate);
+        } catch {
+          // Recovery: the LLM occasionally emits lone backslashes before characters
+          // that aren't valid JSON escape sequences (e.g. \: or \, from formatting).
+          // Fix them by doubling the backslash so JSON.parse sees a literal backslash.
+          // Valid escapes are: " \ / b f n r t u — leave those untouched.
+          const fixed = candidate.replace(/\\([^"\\\/bfnrtu0-9])/g, "\\\\$1");
+          try {
+            result = JSON.parse(fixed);
+          } catch (e2) {
+            send("error", { error: `JSON parse failed: ${(e2 as Error).message}. Preview: ${candidate.slice(0, 300)}` });
+            return;
+          }
         }
         send("done", { result });
       } catch (err: unknown) {
