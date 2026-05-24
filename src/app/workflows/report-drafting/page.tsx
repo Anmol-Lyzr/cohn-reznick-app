@@ -7,7 +7,10 @@ import { IconDownload, IconFileSpreadsheet } from "@tabler/icons-react";
 import type { CohnReznickAnalysis } from "@/types/analysis";
 
 async function downloadExcel(result: CohnReznickAnalysis) {
-  const XLSX = (await import("xlsx")).default;
+  const xlsxMod = await import("xlsx");
+  // xlsx is a CJS module; .default may or may not exist depending on the bundler
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const XLSX = (xlsxMod as any).default ?? xlsxMod;
   const wb = XLSX.utils.book_new();
 
   // Summary sheet
@@ -69,7 +72,7 @@ export default function ReportDraftingPage() {
   const result = useAppSelector(s => s.analysis.result);
 
   const handleDownload = useCallback(() => {
-    if (result) downloadExcel(result);
+    if (result) downloadExcel(result).catch(err => console.error("Excel download failed:", err));
   }, [result]);
 
   if (!result) {
